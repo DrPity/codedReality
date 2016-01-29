@@ -5,6 +5,8 @@ import java.util.*;
 ControlP5 cp5;
 WatchDog wA;
 Textarea myTextarea;
+Helpers help;
+
 
 long[] waitTime         = new long [8];
 long[] currentTime      = new long [8];
@@ -19,11 +21,12 @@ float togglePos = 0.03;
 float easing    = 0.05;
 float[] y       = new float [8];
 
-int lf                 = 10;
-int slave              = -1;
+int slave = -1;
+int lf  = 10;
 
 boolean[] headSetPopulated  = {false,false,false,false,false,false};
 boolean isHashtrue          = false;
+boolean newEvent            = false;
 
 Println console;
 
@@ -40,6 +43,9 @@ void setup()
   fontSmall = createFont("OpenSans-Semibold.ttf",10);
 
   checkSerialPorts();
+
+  help = new Helpers();
+  help.movingAverage(1);
 
   cp5 = new ControlP5(this);
   cp5.setFont(fontSmall);
@@ -76,9 +82,27 @@ void draw()
 
   background(128);
   text("Select a port from the list and connect to the device", round(width*0.01),round(height * 0.11));
-  if(checkTimers(0) && slave >= 0 && !serialDevices.get(slave).paused){
-    serialDevices.get(slave).port.write("Tt1,"+random(50,250) +",50"+","+random(50,250)+",10");
-    wait(3000,0);
+  if(checkTimers(0) && slave >= 0 && !serialDevices.get(slave).paused && newEvent){
+    String c = "";
+    switch (help.getAverage()) {
+      case 1:  c = "255,0,0";
+               break;
+      case 2:  c = "0,255,0";
+               break;
+      case 3:  c = "255,160,0";
+               break;
+      case 4:  c = "255,0,0";
+              break;
+      case 5:  c = "0,255,0";
+              break;
+      case 6:  c = "255,160,0";
+              break;
+      default: c = "255,160,0";
+    }
+
+    serialDevices.get(slave).port.write("Tt1,"+c+",10");
+    wait(500,0);
+    newEvent = false;
   }
 }
 
@@ -121,12 +145,16 @@ void serialEvent(Serial thisPort)
 
           if (inByte != null)
           {
-            println("value: " + inByte);
+            println("inByte: " + inByte, "i: " + i);
             // String [] s = split(inByte, ',');
             if(inByte.equals("master")){
-              // serialDevices.get(i).port.write("Cc1,0,100,2");
-              // serialDevices.get(i).port.write("Tt1,230,90,0,150");
               slave = i;
+            }
+
+            if(i != slave && slave != -1){
+              int state = Integer.parseInt(inByte);
+              help.add(state);
+              newEvent = true;
             }
           }
         }
@@ -193,7 +221,7 @@ void initList()
 
 void dropdown(int n) {
   /* request the selected item based on index n */
-  println(cp5.get(ScrollableList.class, "dropdown").getItem(n).get("value"));
+  // println(cp5.get(ScrollableList.class, "dropdown").getItem(n).get("value"));
   /* here an item is stored as a Map  with the following key-value pairs:
   * name, the given name of the item
   * text, the given text of the item by default the same as name
@@ -234,8 +262,6 @@ void controlEvent(ControlEvent theEvent)
     if (theEvent.isFrom(deviceList.get(i))) {
       if(!headSetPopulated[i]){
         int id = Integer.parseInt(deviceList.get(i).getName());
-        print("Incoming Event from Toggle Button Nr: "+deviceList.get(i).getName()+"\t\n");
-        println(serialList.get(id));
         registerSerialDevice(deviceList.get(i).getName(), (String) serialList.get(id), i);
       }else if(headSetPopulated[i]){
         if(!serialDevices.get(i).paused){
@@ -261,5 +287,5 @@ void registerSerialDevice(String id, String port, int index)
   WatchDog sd = new WatchDog(1,id, port, true, headSetPopulated[index], 57600, true, false, this);
   sd.start();
   serialDevices.add(sd);
-  println(serialDevices.get(0).id);
+  // println(serialDevices.get(0).id);
 }

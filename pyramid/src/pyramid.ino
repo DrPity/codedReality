@@ -153,11 +153,11 @@ void setColor(String inByte){
   bc             = parameterArray[3];
   beat           = parameterArray[4];
 
-  Serial.println(strip);
-  Serial.println(rc);
-  Serial.println(gc);
-  Serial.println(bc);
-  Serial.println(beat);
+  // Serial.println(strip);
+  // Serial.println(rc);
+  // Serial.println(gc);
+  // Serial.println(bc);
+  // Serial.println(beat);
 
   positionIsNotRequested = true;
   if(strip == 0){
@@ -209,12 +209,12 @@ void setTargetColor(String inByte){
   fade           = parameterArray[4];
 
 
-  Serial.println("Splitted Strings");
-  Serial.println(strip);
-  Serial.println(rt);
-  Serial.println(gt);
-  Serial.println(bt);
-  Serial.println(fade);
+  // Serial.println("Splitted Strings");
+  // Serial.println(strip);
+  // Serial.println(rt);
+  // Serial.println(gt);
+  // Serial.println(bt);
+  // Serial.println(fade);
 
   if(strip == 0){
     for(int i = 0; i < NUMSTRIPS; i++){

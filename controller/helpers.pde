@@ -8,11 +8,12 @@ public class Helpers {
   public Helpers() {
     this.total = 0;
     this.index = 0;
+    println("Help activated");
   }
 
   //Moving average stuff
-
   public void movingAverage(int size){
+    println("moving yeah");
     this.size = size;
     samples = new int[size];
     for (int i = 0; i < size; i++) samples[i] = 0;
@@ -26,6 +27,7 @@ public class Helpers {
   }
 
   public int getAverage() {
+      println("Total: " + total + "size: " + size);
       return total / size;
   }
 
