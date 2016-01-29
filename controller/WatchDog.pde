@@ -160,7 +160,7 @@ class WatchDog extends Thread
   {
     if(isPort)
     {
-      println("In is Port: " + id );
+      // println("In is Port: " + id );
       try
       {
         initSerialPort();

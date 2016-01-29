@@ -84,7 +84,7 @@ void draw()
   text("Select a port from the list and connect to the device", round(width*0.01),round(height * 0.11));
   if(checkTimers(0) && slave >= 0 && !serialDevices.get(slave).paused && newEvent){
     String c = "";
-    switch (help.getAverage()) {
+    switch (ceil(help.getAverage())) {
       case 1:  c = "255,160,0";
                break;
       case 2:  c = "0,255,0";
@@ -149,6 +149,7 @@ void serialEvent(Serial thisPort)
             // String [] s = split(inByte, ',');
             if(inByte.equals("master")){
               slave = i;
+              serialDevices.get(slave).port.write("Cc1,0,0,255");
             }
 
             if(i != slave && slave != -1){

@@ -104,18 +104,18 @@ public void draw()
   text("Select a port from the list and connect to the device", round(width*0.01f),round(height * 0.11f));
   if(checkTimers(0) && slave >= 0 && !serialDevices.get(slave).paused && newEvent){
     String c = "";
-    switch (help.getAverage()) {
-      case 1:  c = "255,0,0";
+    switch (ceil(help.getAverage())) {
+      case 1:  c = "255,160,0";
                break;
       case 2:  c = "0,255,0";
                break;
-      case 3:  c = "255,160,0";
+      case 3:  c = "255,0,0";
                break;
-      case 4:  c = "255,0,0";
+      case 4:  c = "255,160,0";
               break;
       case 5:  c = "0,255,0";
               break;
-      case 6:  c = "255,160,0";
+      case 6:  c = "0,255,0";
               break;
       default: c = "255,160,0";
     }
@@ -169,6 +169,7 @@ public void serialEvent(Serial thisPort)
             // String [] s = split(inByte, ',');
             if(inByte.equals("master")){
               slave = i;
+              serialDevices.get(slave).port.write("Cc1,0,0,255");
             }
 
             if(i != slave && slave != -1){
@@ -471,7 +472,7 @@ class WatchDog extends Thread
   {
     if(isPort)
     {
-      println("In is Port: " + id );
+      // println("In is Port: " + id );
       try
       {
         initSerialPort();
@@ -518,7 +519,6 @@ public class Helpers {
 
   //Moving average stuff
   public void movingAverage(int size){
-    println("moving yeah");
     this.size = size;
     samples = new int[size];
     for (int i = 0; i < size; i++) samples[i] = 0;
@@ -532,7 +532,7 @@ public class Helpers {
   }
 
   public int getAverage() {
-      println("Total: " + total + "size: " + size);
+      // println("Total: " + total + "size: " + size);
       return total / size;
   }
 
