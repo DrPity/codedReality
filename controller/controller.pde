@@ -85,17 +85,17 @@ void draw()
   if(checkTimers(0) && slave >= 0 && !serialDevices.get(slave).paused && newEvent){
     String c = "";
     switch (help.getAverage()) {
-      case 1:  c = "255,0,0";
+      case 1:  c = "255,160,0";
                break;
       case 2:  c = "0,255,0";
                break;
-      case 3:  c = "255,160,0";
+      case 3:  c = "255,0,0";
                break;
-      case 4:  c = "255,0,0";
+      case 4:  c = "255,160,0";
               break;
       case 5:  c = "0,255,0";
               break;
-      case 6:  c = "255,160,0";
+      case 6:  c = "0,255,0";
               break;
       default: c = "255,160,0";
     }
