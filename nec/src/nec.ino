@@ -1,10 +1,4 @@
-
-
-
 ///////REMEMBER TO SET THIS FUCKING VALUE
-
-// #define ArduinoB
-
 #define STRIP_PIN_L 2
 #define STRIP_PIN_R 9
 #define NUMBEROFPIXELS 8
@@ -13,20 +7,6 @@
 
 #include <Adafruit_NeoPixel.h>
 #include "wrapper_class.h"
-
-// // Parameter 1 = number of pixels in strip
-// // Parameter 2 = pin number (most are valid)
-// // Parameter 3 = pixel type flags, add together as needed:
-// //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
-// //   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
-// //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
-// //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
-// // Adafruit_NeoPixel stripLB = Adafruit_NeoPixel(NUMBEROFPIXELSCORNER, STRIP_PIN_LB, NEO_GRB + NEO_KHZ800);
-// Adafruit_NeoPixel stripRobot = Adafruit_NeoPixel(NUMBEROFPIXELSROBOT, STRIP_PIN_ROBOT, NEO_GRB + NEO_KHZ800);
-// Adafruit_NeoPixel stripCenter = Adafruit_NeoPixel(NUMBEROFPIXELSCENTER, STRIP_PIN_CENTER, NEO_GRB + NEO_KHZ800);
-// Adafruit_NeoPixel stripRF = Adafruit_NeoPixel(NUMBEROFPIXELSCORNER, STRIP_PIN_RF, NEO_GRB + NEO_KHZ800);
-// Adafruit_NeoPixel stripLF = Adafruit_NeoPixel(NUMBEROFPIXELSCORNER, STRIP_PIN_LF, NEO_GRB + NEO_KHZ800);
-// // Adafruit_NeoPixel stripRB = Adafruit_NeoPixel(NUMBEROFPIXELSCORNER, STRIP_PIN_RB, NEO_GRB + NEO_KHZ800);
 #include <Brain.h>
 
 // Set up the brain parser, pass it the hardware serial object you want to listen on.
@@ -96,14 +76,6 @@ void loop() {
       // Check for good connection and preCalc Data
       if(checkTimers(2)){
         signalStrength = brain.readSignalQuality();
-        // Serial.println(signalStrength);
-        // if(signalStrength == 0){
-        //   aGoodSignalStreak = true;
-        // }
-        // else{
-        //     aGoodSignalStreak = false;
-        // }
-        //
         aGoodSignalStreak = signalStrength == 0 ? true : false;
         // Serial.print("good: ");
         // Serial.println(aGoodSignalStreak);
@@ -207,7 +179,7 @@ void checkColorEsense(){
       isMeditation = false;
       isAttenttion = true;
       isNeutral = false;
-      Serial.println('1');
+      Serial.println('6');
     }
 
     if (meditationLevel >= 60 && attentionLevel < 60 && colorReached && !isMeditation){
@@ -217,7 +189,7 @@ void checkColorEsense(){
       isMeditation = true;
       isAttenttion = false;
       isNeutral = false;
-      Serial.println('2');
+      Serial.println('5');
     }
 
     if (meditationLevel < 60 && attentionLevel < 60 && colorReached && !isNeutral){
@@ -227,7 +199,7 @@ void checkColorEsense(){
       isMeditation = false;
       isAttenttion = false;
       isNeutral = true;
-      Serial.println('3');
+      Serial.println('4');
     }
 
 }
@@ -241,7 +213,7 @@ void checkColorRaw(){
       isTheta = false;
       isDelta = true;
       isNeutralDT = false;
-      Serial.println('4');
+      Serial.println('3');
     }
 
     if (theta >= 70 && delta < 70 && colorReached && !isTheta){
@@ -251,7 +223,7 @@ void checkColorRaw(){
       isTheta = true;
       isDelta = false;
       isNeutralDT = false;
-      Serial.println('5');
+      Serial.println('2');
     }
 
     if (theta < 70 && delta < 70 && colorReached && !isNeutralDT){
@@ -261,7 +233,7 @@ void checkColorRaw(){
       isTheta = false;
       isDelta = false;
       isNeutralDT = true;
-      Serial.println('6');
+      Serial.println('1');
     }
 }
 
