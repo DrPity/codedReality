@@ -41,6 +41,7 @@ float togglePos = 0.03f;
 float easing    = 0.05f;
 float[] y       = new float [8];
 
+int fadeSpeed = 10;
 int slave = -1;
 int lf  = 10;
 
@@ -62,7 +63,7 @@ public void setup()
   frameRate(120);
   fontSmall = createFont("OpenSans-Semibold.ttf",10);
 
-  checkSerialPorts();
+  checkSerialPorts(true);
 
   help = new Helpers();
   help.movingAverage(1);
@@ -83,6 +84,17 @@ public void setup()
   .setColorForeground(color(255, 100));
   ;
 
+  cp5.addSlider("fading")
+   .setPosition(round(width*0.01f),round(height * 0.89f))
+   .setSize(300,12)
+   .setRange(0,150) // values can range from big to small as well
+   .setValue(10)
+   .setNumberOfTickMarks(15)
+   .setSliderMode(Slider.FLEXIBLE)
+   ;
+
+  cp5.getController("fading").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingY(11);
+
   console = cp5.addConsole(myTextarea);//
   console.setMax(30);
 
@@ -93,6 +105,7 @@ public void setup()
   unregisterMethod("keyEvent", cp5);
   unregisterMethod("keyEvent", cp5.getWindow());
   wait(1,0);
+  wait(5000,1);
 }
 
 //-------------------------------------------------------------------------------
@@ -120,9 +133,16 @@ public void draw()
       default: c = "255,160,0";
     }
 
-    serialDevices.get(slave).port.write("Tt1,"+c+",10");
+    serialDevices.get(slave).port.write("Tt1,"+c+"," + fadeSpeed);
     wait(500,0);
     newEvent = false;
+  }
+
+
+  if(checkTimers(1)){
+    // cp5.get(ScrollableList.class, "deviceList").clear();
+    checkSerialPorts(false);
+    wait(5000,1);
   }
 }
 
@@ -197,12 +217,27 @@ public void manageSerial(String inChar)
 
 //-------------------------------------------------------------------------------
 
-public void checkSerialPorts()
+public void checkSerialPorts(boolean init)
 {
+
+  if(!init){
+    serialList.clear();
+  }
+
   for (int i = 0; i < Serial.list().length; i++)
   {
-    println("[" + i + "] " + Serial.list()[i]);
+    // println("[" + i + "] " + Serial.list()[i]);
     serialList.add(Serial.list()[i]);
+  }
+
+  if(!init){
+    cp5.get(ScrollableList.class, "deviceList").setItems(serialList);
+    for(int k = 0; k < deviceList.size(); k++){
+      // println("toogle id: " + deviceList.get(k).getName());
+      CColor c = new CColor();
+      c.setBackground(color(255,0,0));
+      cp5.get(ScrollableList.class, "deviceList").getItem(Integer.parseInt(deviceList.get(k).getName())).put("color", c);
+    }
   }
 }
 
@@ -223,7 +258,7 @@ public void initList()
     }
   };
 
-  cp5.addScrollableList("dropdown")
+  cp5.addScrollableList("deviceList")
   .setSize(400, 300)
   .addItems(serialList)
   .setPosition(round(width*0.01f),round(height * 0.015f))
@@ -240,9 +275,9 @@ public void initList()
 
 //-------------------------------------------------------------------------------
 
-public void dropdown(int n) {
+public void deviceList(int n) {
   /* request the selected item based on index n */
-  // println(cp5.get(ScrollableList.class, "dropdown").getItem(n).get("value"));
+  // println(cp5.get(ScrollableList.class, "deviceList").getItem(n).get("value"));
   /* here an item is stored as a Map  with the following key-value pairs:
   * name, the given name of the item
   * text, the given text of the item by default the same as name
@@ -253,7 +288,7 @@ public void dropdown(int n) {
   String value = Integer.toString(n);
   CColor c = new CColor();
   c.setBackground(color(255,0,0));
-  cp5.get(ScrollableList.class, "dropdown").getItem(n).put("color", c);
+  cp5.get(ScrollableList.class, "deviceList").getItem(n).put("color", c);
   togglePos += 0.1f;
   addToggleButton(n, togglePos);
 }
@@ -275,7 +310,7 @@ public void addToggleButton(int id, float yPos)
   deviceList.add(tg);
 };
 
-//-------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 public void controlEvent(ControlEvent theEvent)
 {
@@ -299,7 +334,7 @@ public void controlEvent(ControlEvent theEvent)
   }
 }
 
-//-------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 public void registerSerialDevice(String id, String port, int index)
 {
@@ -309,6 +344,13 @@ public void registerSerialDevice(String id, String port, int index)
   sd.start();
   serialDevices.add(sd);
   // println(serialDevices.get(0).id);
+}
+
+//------------------------------------------------------------------------------
+
+public void fading(float speed){
+  fadeSpeed = floor(speed);
+  println("Fade Speed: " + fadeSpeed);
 }
 class WatchDog extends Thread
 {
