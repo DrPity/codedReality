@@ -3,10 +3,12 @@
 #define STRIP_PIN_2 3
 #define STRIP_PIN_3 4
 #define NUMBEROFPIXELS 34
+#define STRIPSEGMENTS 3
 #define NUMSTRIPS 1
 
 #include <Adafruit_NeoPixel.h>
 #include "wrapper_class.h"
+#include "stripSegments.h"
 
 
 char end                    = '\n';
@@ -14,22 +16,21 @@ char end                    = '\n';
 bool positionIsNotRequested = false;
 bool shallFlickerInFade     = false;
 bool watchdogActive         = false;
+bool colorReached           = true;
 bool shallFlicker           = false;
 bool startRainbow           = false;
+bool isSegments             = false;
 bool ledsReady              = true;
 bool setStrip               = false;
 
-int parameterArray[5];
-int splitArray[5];
+int parameterArray[6];
+int splitArray[6];
 
 int connectionTimeOut =  10;
 int fadeOutSpeed      = 2;
-int heartBeat         = 0;
 
 long currentTime[8];
 long waitTime[8];
-long heartRate  = 0;
-long beatTime   = 0;
 
 
 int rc = 0;
@@ -39,9 +40,8 @@ int rt = 0;
 int gt = 0;
 int bt = 0;
 int fade = 0;
-int beat = 0;
 
-unsigned long beatTimeStamp;
+
 unsigned long loopTime;
 
 uint8_t fadeSpeed        = 1;
@@ -50,6 +50,14 @@ String inByte;
 
 Wrapper_class strips[] = {
   Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_1),
+  // Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_2),
+  // Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_3),
+};
+
+StripSegments segments[] = {
+  StripSegments(0,20),
+  StripSegments(21,30),
+  StripSegments(31,34)
   // Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_2),
   // Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_3),
 };
@@ -76,7 +84,7 @@ int d = 0;
 void loop() {
 
   if (Serial.available() > 0){
-    Serial.println("Serial Recieved");
+    // Serial.println("Serial Recieved");
     inByte = Serial.readStringUntil(end);
     inByte.trim();
     if(inByte.indexOf('T') == 0 && inByte.indexOf('t') == 1){
@@ -85,6 +93,14 @@ void loop() {
     if(inByte.indexOf('C') == 0 && inByte.indexOf('c') == 1){
       setColor(inByte);
     }
+    if(inByte.indexOf('S') == 0 && inByte.indexOf('s') == 1){
+      for (int i = 0; i < STRIPSEGMENTS; i++) {
+        Serial.print(segments[i].lowerBound);
+        Serial.println(" / ");
+        Serial.println(segments[i].higherBound);
+      }
+    }
+
 
   }
 
@@ -98,15 +114,18 @@ void loop() {
   }
 
 
-  if(fadeSpeed > 0 && beat == 1 && checkTimers(0)){
+  if(fadeSpeed > 0 && !colorReached && checkTimers(0)){
     // Serial.print("In fade Speed");
     shallFlicker = false;
     setStrip = true;
     for(int i = 0; i < NUMSTRIPS; i++){
-      fadeOut(i);
+      if(!isSegments){
+        fadeOut(i);
+      }else{
+        fadeOutSegments(i);
+      }
     }
   }
-
   // if(shallFlicker && checkTimers(1)){
   //   setStrip = true;
   //   // Serial.println("shallFlicker");
@@ -147,17 +166,17 @@ void setColor(String inByte){
     }
   }
 
-  int strip          = parameterArray[0];
+  int strip      = parameterArray[0];
   rc             = parameterArray[1];
   gc             = parameterArray[2];
   bc             = parameterArray[3];
-  beat           = parameterArray[4];
+  // colorReached   = parameterArray[4];
 
   // Serial.println(strip);
   // Serial.println(rc);
   // Serial.println(gc);
   // Serial.println(bc);
-  // Serial.println(beat);
+  // Serial.println(colorReached);
 
   positionIsNotRequested = true;
   if(strip == 0){
@@ -191,7 +210,7 @@ void setColor(String inByte){
 
 void setTargetColor(String inByte){
 
-  for (int i = 0; i < 5; i++){
+  for (int i = 0; i < 6; i++){
     if(i == 0){
       splitArray[i] = inByte.indexOf(',');
       parameterArray[i] = inByte.substring(2,splitArray[i]).toInt();
@@ -203,18 +222,22 @@ void setTargetColor(String inByte){
 
 
   int strip      = parameterArray[0];
-  rt             = parameterArray[1];
-  gt             = parameterArray[2];
-  bt             = parameterArray[3];
-  fade           = parameterArray[4];
+  int segment    = parameterArray[1];
+  rt             = parameterArray[2];
+  gt             = parameterArray[3];
+  bt             = parameterArray[4];
+  fade           = parameterArray[5];
 
 
-  // Serial.println("Splitted Strings");
+  // Serial.println("Splitted Strings: ");
   // Serial.println(strip);
+  // Serial.println(segment);
   // Serial.println(rt);
   // Serial.println(gt);
   // Serial.println(bt);
   // Serial.println(fade);
+
+  isSegments = false;
 
   if(strip == 0){
     for(int i = 0; i < NUMSTRIPS; i++){
@@ -222,13 +245,19 @@ void setTargetColor(String inByte){
       strips[i].targetColorG = gt;
       strips[i].targetColorB = bt;
     }
+  }else if(segment > 0){
+    segments[segment - 1].targetColorR = rt;
+    segments[segment - 1].targetColorG = gt;
+    segments[segment - 1].targetColorB = bt;
+    isSegments = true;
+    segments[segment - 1].colorReached = false;
   }else{
     strips[strip - 1].targetColorR = rt;
     strips[strip - 1].targetColorG = gt;
     strips[strip - 1].targetColorB = bt;
   }
-  beat = 1;
 
+  colorReached = false;
   // positionIsNotRequested = true;
 
 }
@@ -262,14 +291,8 @@ void fadeOut(int k){
     b = (fadeSpeed >= abs(strips[k].targetColorB - b))?strips[k].targetColorB:b<strips[k].targetColorB?b+fadeSpeed:b-fadeSpeed;
 
     if(r == strips[k].targetColorR && g == strips[k].targetColorG && b == strips[k].targetColorB){
-      beat = 0;
+      colorReached = true;
       shallFlicker = true;
-      // Serial.println("Beat is 0");
-      // Serial.println(k);
-      // if(positionIsNotRequested){
-      //   requestNextPosition();
-      // }
-
     }
 
     if(shallFlickerInFade && checkTimers(1)){
@@ -280,6 +303,58 @@ void fadeOut(int k){
   }
   // wait(random(0,fade),1);
 }
+
+//------------------------------------------------------------------------------
+
+void fadeOutSegments(int k){
+  for(int s = 0; s < STRIPSEGMENTS; s++){
+    for(int i = segments[s].lowerBound; i < segments[s].higherBound; i++){
+      uint32_t color = strips[k].getPixelColor(i);
+
+      int
+      r = (uint8_t)(color >> 16),
+      g = (uint8_t)(color >>  8),
+      b = (uint8_t)color;
+
+      r = (fadeSpeed >= abs(segments[s].targetColorR - r))?segments[s].targetColorR:r<segments[s].targetColorR?r+fadeSpeed:r-fadeSpeed;
+      g = (fadeSpeed >= abs(segments[s].targetColorG - g))?segments[s].targetColorG:g<segments[s].targetColorG?g+fadeSpeed:g-fadeSpeed;
+      b = (fadeSpeed >= abs(segments[s].targetColorB - b))?segments[s].targetColorB:b<segments[s].targetColorB?b+fadeSpeed:b-fadeSpeed;
+
+      if(r == segments[s].targetColorR && g == segments[s].targetColorG && b == segments[s].targetColorB){
+        segments[s].colorReached = true;
+        shallFlicker = true;
+      }
+
+      if(shallFlickerInFade && checkTimers(1)){
+        strips[k].setBrightness(random(50,255));
+      }
+      strips[k].setPixelColor(i, r, g, b);
+      wait(fade,0);
+    }
+  }
+
+  if(checkSegColor()){
+    // Serial.println("Truuue");
+    colorReached = true;
+    isSegments = false;
+  }
+  // wait(random(0,fade),1);
+}
+
+//------------------------------------------------------------------------------
+
+bool checkSegColor()
+{
+  for(int s = 0; s < STRIPSEGMENTS-1; s++){
+    if(segments[s].colorReached != segments[s + 1].colorReached){
+      return false;
+    }else if(!segments[s].colorReached && !segments[s + 1].colorReached){
+      return false;
+    }
+  }
+  return true;
+}
+
 
 //------------------------------------------------------------------------------
 

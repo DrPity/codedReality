@@ -16,6 +16,7 @@ PFont fontSmall;
 List<WatchDog> serialDevices = new ArrayList<WatchDog>();
 List<Toggle> deviceList = new ArrayList<Toggle>();
 List serialList= new ArrayList();
+int[] topList = {1,2,3};
 
 float togglePos = 0.03;
 float easing    = 0.05;
@@ -38,9 +39,10 @@ color [] c = new color [10];
 void setup()
 {
   size(700, 400, FX2D);
+  surface.setResizable(false);
   background(128);
   smooth();
-  frameRate(120);
+  frameRate(60);
   fontSmall = createFont("OpenSans-Semibold.ttf",10);
 
   checkSerialPorts(true);
@@ -52,6 +54,11 @@ void setup()
   cp5.setFont(fontSmall);
   cp5.addFrameRate().setInterval(5).setColor(0).setPosition(round(width*0.01),round(height * 0.95)).setFont(fontSmall);
 
+  println("Toplist: " + topList[0]);
+  println("Toplist: " + topList[1]);
+  println("Toplist: " + topList[2]);
+
+  help.shiftArray(topList);
 
   // create the console txt field
   myTextarea = cp5.addTextarea("txt")
@@ -96,6 +103,8 @@ void draw()
   background(128);
   text("Select a port from the list and connect to the device", round(width*0.01),round(height * 0.11));
   if(checkTimers(0) && slave >= 0 && !serialDevices.get(slave).paused && newEvent){
+
+    // ceil(help.getAverage())
     String c = "";
     switch (ceil(help.getAverage())) {
       case 1:  c = "255,160,0";
@@ -112,7 +121,6 @@ void draw()
               break;
       default: c = "255,160,0";
     }
-
     serialDevices.get(slave).port.write("Tt1,"+c+"," + fadeSpeed);
     wait(500,0);
     newEvent = false;

@@ -30,4 +30,11 @@ public class Helpers {
       return total / size;
   }
 
+  public void shiftArray(int array[]) {
+    println("arraylenght : " + array.length);
+    for (int i = (array.length - 1); i >= 0; i--) {
+      // array[i+1] = array[i];
+      println("array : " + i + " / " + array[i]);
+    }
+  }
 }

@@ -36,6 +36,7 @@ PFont fontSmall;
 List<WatchDog> serialDevices = new ArrayList<WatchDog>();
 List<Toggle> deviceList = new ArrayList<Toggle>();
 List serialList= new ArrayList();
+int[] topList = {1,2,3};
 
 float togglePos = 0.03f;
 float easing    = 0.05f;
@@ -58,9 +59,10 @@ int [] c = new int [10];
 public void setup()
 {
   
+  surface.setResizable(false);
   background(128);
   
-  frameRate(120);
+  frameRate(60);
   fontSmall = createFont("OpenSans-Semibold.ttf",10);
 
   checkSerialPorts(true);
@@ -72,6 +74,11 @@ public void setup()
   cp5.setFont(fontSmall);
   cp5.addFrameRate().setInterval(5).setColor(0).setPosition(round(width*0.01f),round(height * 0.95f)).setFont(fontSmall);
 
+  println("Toplist: " + topList[0]);
+  println("Toplist: " + topList[1]);
+  println("Toplist: " + topList[2]);
+
+  help.shiftArray(topList);
 
   // create the console txt field
   myTextarea = cp5.addTextarea("txt")
@@ -87,7 +94,7 @@ public void setup()
   cp5.addSlider("fading")
    .setPosition(round(width*0.01f),round(height * 0.89f))
    .setSize(300,12)
-   .setRange(0,150) // values can range from big to small as well
+   .setRange(0,100) // values can range from big to small as well
    .setValue(10)
    .setNumberOfTickMarks(15)
    .setSliderMode(Slider.FLEXIBLE)
@@ -116,6 +123,8 @@ public void draw()
   background(128);
   text("Select a port from the list and connect to the device", round(width*0.01f),round(height * 0.11f));
   if(checkTimers(0) && slave >= 0 && !serialDevices.get(slave).paused && newEvent){
+
+    // ceil(help.getAverage())
     String c = "";
     switch (ceil(help.getAverage())) {
       case 1:  c = "255,160,0";
@@ -132,7 +141,6 @@ public void draw()
               break;
       default: c = "255,160,0";
     }
-
     serialDevices.get(slave).port.write("Tt1,"+c+"," + fadeSpeed);
     wait(500,0);
     newEvent = false;
@@ -578,6 +586,13 @@ public class Helpers {
       return total / size;
   }
 
+  public void shiftArray(int array[]) {
+    println("arraylenght : " + array.length);
+    for (int i = (array.length - 1); i >= 0; i--) {
+      // array[i+1] = array[i];
+      println("array : " + i + " / " + array[i]);
+    }
+  }
 }
   public void settings() {  size(700, 400, FX2D);  smooth(); }
   static public void main(String[] passedArgs) {
