@@ -151,7 +151,7 @@ void draw()
       println("In idx = 0");
       toplistNewPopulated = false;
       // idx = 0;
-      wait(1000,2);
+      wait(500,2);
     // }
   }
 }
