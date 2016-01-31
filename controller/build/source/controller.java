@@ -44,15 +44,18 @@ float[] y       = new float [8];
 
 int fadeSpeed = 10;
 int slave = -1;
+int idx = 0;
 int lf  = 10;
 
 boolean[] headSetPopulated  = {false,false,false,false,false,false};
+boolean toplistNewPopulated = false;
 boolean isHashtrue          = false;
 boolean newEvent            = false;
 
 Println console;
 
-int [] c = new int [10];
+static int numberOfSegments = 3;
+int [] topListColor = new int [numberOfSegments];
 
 //-------------------------------------------------------------------------------
 
@@ -73,12 +76,6 @@ public void setup()
   cp5 = new ControlP5(this);
   cp5.setFont(fontSmall);
   cp5.addFrameRate().setInterval(5).setColor(0).setPosition(round(width*0.01f),round(height * 0.95f)).setFont(fontSmall);
-
-  println("Toplist: " + topList[0]);
-  println("Toplist: " + topList[1]);
-  println("Toplist: " + topList[2]);
-
-  help.shiftArray(topList);
 
   // create the console txt field
   myTextarea = cp5.addTextarea("txt")
@@ -113,6 +110,7 @@ public void setup()
   unregisterMethod("keyEvent", cp5.getWindow());
   wait(1,0);
   wait(5000,1);
+  wait(5000,2);
 }
 
 //-------------------------------------------------------------------------------
@@ -123,34 +121,58 @@ public void draw()
   background(128);
   text("Select a port from the list and connect to the device", round(width*0.01f),round(height * 0.11f));
   if(checkTimers(0) && slave >= 0 && !serialDevices.get(slave).paused && newEvent){
-
-    // ceil(help.getAverage())
-    String c = "";
-    switch (ceil(help.getAverage())) {
-      case 1:  c = "255,160,0";
-               break;
-      case 2:  c = "0,255,0";
-               break;
-      case 3:  c = "255,0,0";
-               break;
-      case 4:  c = "255,160,0";
-              break;
-      case 5:  c = "0,255,0";
-              break;
-      case 6:  c = "0,255,0";
-              break;
-      default: c = "255,160,0";
+    try
+    {
+      help.shiftArray(topList);
+      topList[0] = ceil(help.getAverage());
+      //maybe taking the segements lenght would be better --> best if segment == topList.length
+      for(int i = 0; i < topList.length; i++){
+        switch (topList[i]) {
+          case 1:  topListColor[i] = color(255,160,0);
+                   break;
+          case 2:  topListColor[i] = color(0,255,0);
+                   break;
+          case 3:  topListColor[i] = color(255,0,0);
+                   break;
+          case 4:  topListColor[i] = color(255,160,0);
+                  break;
+          case 5:  topListColor[i] = color(0,255,0);
+                  break;
+          case 6:  topListColor[i] = color(0,255,0);
+                  break;
+          default: topListColor[i] = color(255,160,0);
+        }
+        println("current Toplist values: " + topList[i] + "color: " + topListColor[i]);
+      }
+      toplistNewPopulated = true;
     }
-    serialDevices.get(slave).port.write("Tt1,"+c+"," + fadeSpeed);
-    wait(500,0);
+    catch ( Exception e )
+    {
+     println(e);
+    }
+    wait(2000,0);
     newEvent = false;
   }
 
 
-  if(checkTimers(1)){
-    // cp5.get(ScrollableList.class, "deviceList").clear();
+  if(checkTimers(1))
+  {
     checkSerialPorts(false);
     wait(5000,1);
+  }
+
+  if(checkTimers(2) && toplistNewPopulated){
+    // if((idx+1)%(numberOfSegments+1) != 0){
+      // println("Tt1,"+ (idx+1) + "," + topListColor[idx] +"," + fadeSpeed);
+      serialDevices.get(slave).port.write("Tt1,1," + topListColor[0] + "," + topListColor[1] + "," + topListColor[2] + "," + fadeSpeed);
+      // idx++;
+      // wait(3000,2);
+    // }else if (idx%numberOfSegments == 0){
+      println("In idx = 0");
+      toplistNewPopulated = false;
+      // idx = 0;
+      wait(1000,2);
+    // }
   }
 }
 
@@ -193,7 +215,7 @@ public void serialEvent(Serial thisPort)
 
           if (inByte != null)
           {
-            println("inByte: " + inByte, "i: " + i);
+            // println("inByte: " + inByte);
             // String [] s = split(inByte, ',');
             if(inByte.equals("master")){
               slave = i;
@@ -307,7 +329,7 @@ public void addToggleButton(int id, float yPos)
 {
   Toggle tg = cp5.addToggle(Integer.toString(id))
   .setPosition(round(width*0.01f),round(height * yPos))
-  .setSize(50,20)
+  .setSize(300,20)
   .setValue(true)
   .setColorLabel(0)
   .setColorActive(color(0,255,0))
@@ -423,7 +445,7 @@ class WatchDog extends Thread
   public void run ()
   {
     // sleep(2000);
-    println(id + " " + conValue);
+    // println(id + " " + conValue);
     deviceInit();
     sleep(300);
     while (running)
@@ -587,10 +609,8 @@ public class Helpers {
   }
 
   public void shiftArray(int array[]) {
-    println("arraylenght : " + array.length);
-    for (int i = (array.length - 1); i >= 0; i--) {
-      // array[i+1] = array[i];
-      println("array : " + i + " / " + array[i]);
+    for (int i = (array.length - 2); i >= 0; i--) {
+      array[i+1] = array[i];
     }
   }
 }

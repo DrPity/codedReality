@@ -14,7 +14,7 @@ class StripSegments
     lowerBound = _lowerBound;
     higherBound = _higherBound;
     colorReached = false;
-    targetColorR, targetColorG, targetColorB = 0;
+    targetColorR, targetColorG, targetColorB = 255;
   }
 
 };

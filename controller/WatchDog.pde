@@ -61,7 +61,7 @@ class WatchDog extends Thread
   void run ()
   {
     // sleep(2000);
-    println(id + " " + conValue);
+    // println(id + " " + conValue);
     deviceInit();
     sleep(300);
     while (running)

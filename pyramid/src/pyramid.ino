@@ -23,8 +23,8 @@ bool isSegments             = false;
 bool ledsReady              = true;
 bool setStrip               = false;
 
-int parameterArray[6];
-int splitArray[6];
+long parameterArray[6];
+long splitArray[6];
 
 int connectionTimeOut =  10;
 int fadeOutSpeed      = 2;
@@ -56,8 +56,8 @@ Wrapper_class strips[] = {
 
 StripSegments segments[] = {
   StripSegments(0,20),
-  StripSegments(21,30),
-  StripSegments(31,34)
+  StripSegments(20,30),
+  StripSegments(30,34)
   // Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_2),
   // Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_3),
 };
@@ -66,12 +66,12 @@ StripSegments segments[] = {
 
 void setup() {
   Serial.begin(57600);
-  Serial.println("Before Init");
+  // Serial.println("Before Init");
   for (int i = 0; i < NUMSTRIPS; ++i)
   {
     strips[i].init();
   }
-  Serial.println("After");
+  // Serial.println("After");
   establishContact();
   wait(1,0);
   wait(1,1);
@@ -166,10 +166,10 @@ void setColor(String inByte){
     }
   }
 
-  int strip      = parameterArray[0];
-  rc             = parameterArray[1];
-  gc             = parameterArray[2];
-  bc             = parameterArray[3];
+  int strip      = (int) parameterArray[0];
+  rc             = (int) parameterArray[1];
+  gc             = (int) parameterArray[2];
+  bc             = (int) parameterArray[3];
   // colorReached   = parameterArray[4];
 
   // Serial.println(strip);
@@ -221,37 +221,69 @@ void setTargetColor(String inByte){
   }
 
 
-  int strip      = parameterArray[0];
-  int segment    = parameterArray[1];
-  rt             = parameterArray[2];
-  gt             = parameterArray[3];
-  bt             = parameterArray[4];
-  fade           = parameterArray[5];
+  int strip      = (int) parameterArray[0];
+  int segment    = (int) parameterArray[1];
 
+  long color[3];
+  color[0]   = parameterArray[2];
+  color[1]   = parameterArray[3];
+  color[2]   = parameterArray[4];
 
-  // Serial.println("Splitted Strings: ");
-  // Serial.println(strip);
-  // Serial.println(segment);
-  // Serial.println(rt);
-  // Serial.println(gt);
-  // Serial.println(bt);
-  // Serial.println(fade);
+  fade       = (int) parameterArray[5];
+
+  Serial.println("Splitted Strings: ");
+  Serial.println(strip);
+  Serial.println(segment);
+  Serial.println(color[0]);
+  Serial.println(color[1]);
+  Serial.println(color[2]);
+  Serial.println(fade);
 
   isSegments = false;
 
+
+  // to set all strips send: Tt0,0,color,emptyColor,emptyColor,fade
+  // to set a strip send: Tt1,0,color,emptyColor,emptyColor,fade
+  // to set a segment send: Tt1,1,color,color,color,fade
   if(strip == 0){
     for(int i = 0; i < NUMSTRIPS; i++){
+
+      int
+      rt = (uint8_t)(color[0] >> 16),
+      gt = (uint8_t)(color[0] >>  8),
+      bt = (uint8_t)color[0];
+
+      // Serial.println("In alle strips: ");
+      // Serial.println(rt);
+      // Serial.println(gt);
+      // Serial.println(bt);
+
       strips[i].targetColorR = rt;
       strips[i].targetColorG = gt;
       strips[i].targetColorB = bt;
     }
-  }else if(segment > 0){
-    segments[segment - 1].targetColorR = rt;
-    segments[segment - 1].targetColorG = gt;
-    segments[segment - 1].targetColorB = bt;
+  }else if(segment == 1){
+    for(int s = 0; s < STRIPSEGMENTS; s++){
+
+      int
+      rt = (uint8_t)(color[s] >> 16),
+      gt = (uint8_t)(color[s] >>  8),
+      bt = (uint8_t)color[s];
+
+      segments[s].targetColorR = rt;
+      segments[s].targetColorG = gt;
+      segments[s].targetColorB = bt;
+
+      segments[s].colorReached = false;
+
+    }
     isSegments = true;
-    segments[segment - 1].colorReached = false;
   }else{
+    int
+    rt = (uint8_t)(color[0] >> 16),
+    gt = (uint8_t)(color[0] >>  8),
+    bt = (uint8_t)color[0];
+
     strips[strip - 1].targetColorR = rt;
     strips[strip - 1].targetColorG = gt;
     strips[strip - 1].targetColorB = bt;

@@ -69,7 +69,7 @@ public:
 	void rainbowCycle(int wait) {
 	  int j = (millis()/wait)%(256*5);
 	  for(int i=0; i < _strip->numPixels(); i++) {
-	    _strip->setPixelColor(i, Wheel(((i * 256 / 2) + j) & 255));
+	    _strip->setPixelColor(i, Wheel(((i * 256 / _strip->numPixels()) + j) & 255));
 	  }
 	  _strip->show();
 	}
