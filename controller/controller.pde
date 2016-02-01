@@ -24,7 +24,6 @@ float[] y       = new float [8];
 
 int fadeSpeed = 10;
 int slave = -1;
-int idx = 0;
 int lf  = 10;
 
 boolean[] headSetPopulated  = {false,false,false,false,false,false};
@@ -142,17 +141,9 @@ void draw()
   }
 
   if(checkTimers(2) && toplistNewPopulated){
-    // if((idx+1)%(numberOfSegments+1) != 0){
-      // println("Tt1,"+ (idx+1) + "," + topListColor[idx] +"," + fadeSpeed);
-      serialDevices.get(slave).port.write("Tt1,1," + topListColor[0] + "," + topListColor[1] + "," + topListColor[2] + "," + fadeSpeed);
-      // idx++;
-      // wait(3000,2);
-    // }else if (idx%numberOfSegments == 0){
-      println("In idx = 0");
-      toplistNewPopulated = false;
-      // idx = 0;
-      wait(500,2);
-    // }
+    serialDevices.get(slave).port.write("Tt1,1," + topListColor[0] + "," + topListColor[1] + "," + topListColor[2] + "," + fadeSpeed);
+    toplistNewPopulated = false;
+    wait(500,2);
   }
 }
 

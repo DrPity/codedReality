@@ -50,8 +50,8 @@ String inByte;
 
 Wrapper_class strips[] = {
   Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_1),
-  // Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_2),
-  // Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_3),
+  Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_2),
+  Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_3),
 };
 
 StripSegments segments[] = {
@@ -231,14 +231,6 @@ void setTargetColor(String inByte){
 
   fade       = (int) parameterArray[5];
 
-  Serial.println("Splitted Strings: ");
-  Serial.println(strip);
-  Serial.println(segment);
-  Serial.println(color[0]);
-  Serial.println(color[1]);
-  Serial.println(color[2]);
-  Serial.println(fade);
-
   isSegments = false;
 
 
@@ -253,10 +245,6 @@ void setTargetColor(String inByte){
       gt = (uint8_t)(color[0] >>  8),
       bt = (uint8_t)color[0];
 
-      // Serial.println("In alle strips: ");
-      // Serial.println(rt);
-      // Serial.println(gt);
-      // Serial.println(bt);
 
       strips[i].targetColorR = rt;
       strips[i].targetColorG = gt;
