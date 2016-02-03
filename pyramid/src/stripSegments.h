@@ -2,7 +2,7 @@ class StripSegments
 {
    public:
       int lowerBound;
-      int higherBound;
+      int upperBound;
 
       bool colorReached;
 
@@ -10,9 +10,9 @@ class StripSegments
     	uint8_t targetColorG;
     	uint8_t targetColorB;
 
-  StripSegments(int _lowerBound, int _higherBound){
+  StripSegments(int _lowerBound, int _upperBound){
     lowerBound = _lowerBound;
-    higherBound = _higherBound;
+    upperBound = _upperBound;
     colorReached = false;
     targetColorR, targetColorG, targetColorB = 255;
   }

@@ -2,6 +2,7 @@
 #define WRAPPER_H
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
+#include "MAPPING.h"
 
 class Wrapper_class{
 
@@ -9,18 +10,27 @@ private:
 	int _numberOfPixels;
 	int _stripPin;
 	Adafruit_NeoPixel* _strip;
+	uint8_t _flicker[NUMBEROFPIXELS];
+	uint8_t _targetColorR[NUMBEROFPIXELS];
+	uint8_t _targetColorG[NUMBEROFPIXELS];
+	uint8_t _targetColorB[NUMBEROFPIXELS];
+	bool _colorReached[NUMBEROFPIXELS];
+	bool _ignorePixel[NUMBEROFPIXELS];
 
-public:
-	uint8_t targetColorR;
-	uint8_t targetColorG;
-	uint8_t targetColorB;
-
-
+public:	
 	void setStripColor();
 
 	Wrapper_class(int numberOfPixels, int stripPin): _numberOfPixels(numberOfPixels), _stripPin(stripPin){
 		_strip = new Adafruit_NeoPixel(_numberOfPixels, _stripPin, NEO_GRB + NEO_KHZ800);
-		targetColorR, targetColorG, targetColorB = 0;
+
+		for (int i = 0; i < _numberOfPixels; i++) {
+			_flicker[i] = 0;
+			_ignorePixel[i] = false;
+			_targetColorR[i] = 0;
+			_targetColorG[i] = 0;
+			_targetColorB[i] = 0;
+			_colorReached[i] = false;
+		}
 	}
 
 
@@ -58,13 +68,59 @@ public:
 
 	void setPixelColor(int i, uint32_t color){
 		_strip->setPixelColor(i, color);
-		// _strip->show();
 	}
 
 	void show(){
 		_strip->show();
 	}
 
+	void setIgnorePixel(int i, bool ignore){
+		_ignorePixel[i] = ignore;
+	}
+
+	bool getIgnorePixel(int i){
+		return _ignorePixel[i];
+	}
+
+	void setTargetColorR(int i, uint8_t red){
+		_targetColorR[i] = red;
+	}
+
+	uint8_t getTargetColorR(int i){
+		return _targetColorR[i];
+	}
+
+	void setTargetColorG(int i, uint8_t green){
+		_targetColorG[i] = green;
+	}
+
+	uint8_t getTargetColorG(int i){
+		return _targetColorG[i];
+	}
+
+	void setTargetColorB(int i, uint8_t blue){
+		_targetColorB[i] = blue;
+	}
+
+	uint8_t getTargetColorB(int i){
+		return _targetColorB[i];
+	}
+
+	void setNewFlickerValue(int i){
+		_flicker[i] = (uint8_t) random(0,200);
+	}
+
+	uint8_t getCurrentFlickerValue(int i) {
+		return _flicker[i];
+	}
+
+	void setColorReached(int i, bool status){
+		_colorReached[i] = status;
+	}
+
+	bool getColorReached(int i) {
+		return _colorReached[i];
+	}
 
 	void rainbowCycle(int wait) {
 	  int j = (millis()/wait)%(256*5);

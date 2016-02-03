@@ -11,4 +11,4 @@
  .pioenvs/nanoatmega328/FrameworkArduino/Arduino.h \
  .pioenvs/nanoatmega328/FrameworkArduinoVariant/pins_arduino.h \
  .pioenvs/nanoatmega328/Adafruit_NeoPixel/Adafruit_NeoPixel.h \
- src/wrapper_class.h src/stripSegments.h
+ src/wrapper_class.h src/MAPPING.h src/stripSegments.h
