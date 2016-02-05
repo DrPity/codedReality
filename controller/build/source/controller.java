@@ -46,7 +46,7 @@ int fadeSpeed = 10;
 int slave = -1;
 int lf  = 10;
 
-boolean[] headSetPopulated  = {false,false,false,false,false,false};
+boolean[] headSetPopulated  = {false,false,false,false,false,false,false};
 boolean toplistNewPopulated = false;
 boolean isHashtrue          = false;
 boolean newEvent            = false;
@@ -262,18 +262,22 @@ public void checkSerialPorts(boolean init)
   for (int i = 0; i < Serial.list().length; i++)
   {
     // println("[" + i + "] " + Serial.list()[i]);
-    serialList.add(Serial.list()[i]);
+      serialList.add(Serial.list()[i]);
+  }
+  try{
+    if(!init){
+      cp5.get(ScrollableList.class, "deviceList").setItems(serialList);
+      for(int k = 0; k < deviceList.size(); k++){
+        // println("toogle id: " + deviceList.get(k).getName());
+        CColor c = new CColor();
+        c.setBackground(color(255,0,0));
+        cp5.get(ScrollableList.class, "deviceList").getItem(Integer.parseInt(deviceList.get(k).getName())).put("color", c);
+      }
+    }
+  }catch(Exception e){
+    println(e);
   }
 
-  if(!init){
-    cp5.get(ScrollableList.class, "deviceList").setItems(serialList);
-    for(int k = 0; k < deviceList.size(); k++){
-      // println("toogle id: " + deviceList.get(k).getName());
-      CColor c = new CColor();
-      c.setBackground(color(255,0,0));
-      cp5.get(ScrollableList.class, "deviceList").getItem(Integer.parseInt(deviceList.get(k).getName())).put("color", c);
-    }
-  }
 }
 
 //-------------------------------------------------------------------------------

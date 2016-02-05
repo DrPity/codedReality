@@ -26,7 +26,7 @@ int fadeSpeed = 10;
 int slave = -1;
 int lf  = 10;
 
-boolean[] headSetPopulated  = {false,false,false,false,false,false};
+boolean[] headSetPopulated  = {false,false,false,false,false,false,false};
 boolean toplistNewPopulated = false;
 boolean isHashtrue          = false;
 boolean newEvent            = false;
@@ -124,7 +124,7 @@ void draw()
             break;
           default: topListColor[i] = color(255,160,0);
         }
-        println("current Toplist values: " + topList[i] + "color: " + topListColor[i]);
+        // println("current Toplist values: " + topList[i] + "color: " + topListColor[i]);
       }
       toplistNewPopulated = true;
     }
@@ -208,7 +208,7 @@ void serialEvent(Serial thisPort)
 
             if(i != slave && slave != -1){
               int state = Integer.parseInt(inByte);
-              println(state);
+              // println(state);
               help.add(state);
               newEvent = true;
             }
@@ -242,18 +242,22 @@ void checkSerialPorts(boolean init)
   for (int i = 0; i < Serial.list().length; i++)
   {
     // println("[" + i + "] " + Serial.list()[i]);
-    serialList.add(Serial.list()[i]);
+      serialList.add(Serial.list()[i]);
+  }
+  try{
+    if(!init){
+      cp5.get(ScrollableList.class, "deviceList").setItems(serialList);
+      for(int k = 0; k < deviceList.size(); k++){
+        // println("toogle id: " + deviceList.get(k).getName());
+        CColor c = new CColor();
+        c.setBackground(color(255,0,0));
+        cp5.get(ScrollableList.class, "deviceList").getItem(Integer.parseInt(deviceList.get(k).getName())).put("color", c);
+      }
+    }
+  }catch(Exception e){
+    println(e);
   }
 
-  if(!init){
-    cp5.get(ScrollableList.class, "deviceList").setItems(serialList);
-    for(int k = 0; k < deviceList.size(); k++){
-      // println("toogle id: " + deviceList.get(k).getName());
-      CColor c = new CColor();
-      c.setBackground(color(255,0,0));
-      cp5.get(ScrollableList.class, "deviceList").getItem(Integer.parseInt(deviceList.get(k).getName())).put("color", c);
-    }
-  }
 }
 
 //-------------------------------------------------------------------------------
@@ -329,7 +333,7 @@ void addToggleButton(int id, float yPos)
 
 void controlEvent(ControlEvent theEvent)
 {
-  println("controlEvent: ");
+  // println("controlEvent: ");
   for (int i=0;i<deviceList.size();i++) {
     println("deviceList index: " + i + "device: " + deviceList.get(i));
     if (theEvent.isFrom(deviceList.get(i))) {
