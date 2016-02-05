@@ -185,6 +185,7 @@ class WatchDog extends Thread
 
   void initSerialPort(){
     port = new Serial(p, devicePort, bautRate);
+    println("In dev init");
     if(buffer)
     {
       port.bufferUntil(lf);

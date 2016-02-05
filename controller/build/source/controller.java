@@ -55,6 +55,7 @@ Println console;
 
 static int numberOfSegments = 3;
 int [] topListColor = new int [numberOfSegments];
+int lastTopColor;
 
 //-------------------------------------------------------------------------------
 
@@ -68,6 +69,7 @@ public void setup()
   fontSmall = createFont("OpenSans-Semibold.ttf",10);
 
   checkSerialPorts(true);
+  lastTopColor = color(255,160,0);
 
   help = new Helpers();
   help.movingAverage(1);
@@ -127,18 +129,24 @@ public void draw()
       //maybe taking the segements lenght would be better --> best if segment == topList.length
       for(int i = 0; i < topList.length; i++){
         switch (topList[i]) {
-          case 1:  topListColor[i] = color(255,160,0);
-                   break;
-          case 2:  topListColor[i] = color(0,255,0);
-                   break;
-          case 3:  topListColor[i] = color(255,0,0);
-                   break;
-          case 4:  topListColor[i] = color(255,160,0);
-                  break;
-          case 5:  topListColor[i] = color(0,255,0);
-                  break;
-          case 6:  topListColor[i] = color(0,255,0);
-                  break;
+          case 1:
+            topListColor[i] = color(255,160,0);
+            break;
+          case 2:
+            topListColor[i] = color(0,255,0);
+            break;
+          case 3:
+            topListColor[i] = color(255,0,0);
+            break;
+          case 4:
+            topListColor[i] = color(255,160,0);
+            break;
+          case 5:
+            topListColor[i] = color(0,255,0);
+            break;
+          case 6:
+            topListColor[i] = color(0,255,0);
+            break;
           default: topListColor[i] = color(255,160,0);
         }
         println("current Toplist values: " + topList[i] + "color: " + topListColor[i]);
@@ -162,6 +170,10 @@ public void draw()
 
   if(checkTimers(2) && toplistNewPopulated){
     serialDevices.get(slave).port.write("Tt1,1," + topListColor[0] + "," + topListColor[1] + "," + topListColor[2] + "," + fadeSpeed);
+    if (lastTopColor != topListColor[2]){
+      serialDevices.get(slave).port.write("Pp");
+    }
+    lastTopColor = topListColor[2];
     toplistNewPopulated = false;
     wait(500,2);
   }
@@ -210,7 +222,8 @@ public void serialEvent(Serial thisPort)
             // String [] s = split(inByte, ',');
             if(inByte.equals("master")){
               slave = i;
-              serialDevices.get(slave).port.write("Cc1,0,0,255");
+              println("Teensy connected");
+              serialDevices.get(slave).port.write("Tt1,1,255,255,255,20");
             }
 
             if(i != slave && slave != -1){
@@ -560,6 +573,7 @@ class WatchDog extends Thread
 
   public void initSerialPort(){
     port = new Serial(p, devicePort, bautRate);
+    println("In dev init");
     if(buffer)
     {
       port.bufferUntil(lf);
