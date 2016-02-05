@@ -17,8 +17,11 @@ private:
 	bool _colorReached[NUMBEROFPIXELS];
 	bool _ignorePixel[NUMBEROFPIXELS];
 
-public:	
+public:
 	void setStripColor();
+	uint32_t lastPixelColor[NUMBEROFPIXELS];
+	int idx[NUMBEROFPIXELS];
+
 
 	Wrapper_class(int numberOfPixels, int stripPin): _numberOfPixels(numberOfPixels), _stripPin(stripPin){
 		_strip = new Adafruit_NeoPixel(_numberOfPixels, _stripPin, NEO_GRB + NEO_KHZ800);
@@ -30,6 +33,8 @@ public:
 			_targetColorG[i] = 0;
 			_targetColorB[i] = 0;
 			_colorReached[i] = false;
+			lastPixelColor[i] = 0;
+			idx[i] = 255;
 		}
 	}
 
@@ -51,6 +56,10 @@ public:
 	void setBrightness(uint8_t brightness){
 		_strip->setBrightness(brightness);
 		// _strip->show();
+	}
+
+	uint32_t getIntColor(uint8_t r, uint8_t g, uint8_t b){
+		return _strip->Color(r,g,b);
 	}
 
 	int getNumPixels(){
@@ -128,6 +137,10 @@ public:
 	    _strip->setPixelColor(i, Wheel(((i * 256 / _strip->numPixels()) + j) & 255));
 	  }
 	  _strip->show();
+	}
+
+	void resetIdx(int i){
+			idx[i] = -255;
 	}
 
 	// Input a value 0 to 255 to get a color value.

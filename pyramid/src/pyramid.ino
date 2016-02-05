@@ -6,7 +6,7 @@
 #include "MAPPING.h"
 
 
-char end                    = '\n';
+char lf                    = '\n';
 
 bool positionIsNotRequested = false;
 bool shallFlickerInFade     = true;
@@ -28,12 +28,13 @@ int fadeOutSpeed      = 2;
 long currentTime[8];
 long waitTime[8];
 
-bool ignoreList[34];
+bool fall = false;
+bool rise = true;
 
 uint8_t lastPixel = 0;
 uint8_t lastR,lastG,lastB = 0;
 
-int comp = 0;
+uint32_t lastPixelColor[NUMBEROFPIXELS];
 
 int rc = 0;
 int gc = 0;
@@ -51,14 +52,12 @@ String inByte;
 
 Wrapper_class strips[] = {
   Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_1),
-  Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_2),
-  Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_3),
 };
 
 StripSegments segments[] = {
   StripSegments(0,15),
   StripSegments(15,25),
-  StripSegments(25,34)
+  StripSegments(25,75)
   // Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_2),
   // Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_3),
 };
@@ -72,30 +71,31 @@ void setup() {
   {
     strips[i].init();
   }
-  for(int i = 0; i <34; i++)
-  {
-    ignoreList[i] = false;
-  }
-  // Serial.println("After");
+  Serial.println("Setup");
   establishContact();
   wait(1,0);
-  wait(1,1);
+  // wait(10000,1);
 }
 
 
 //------------------------------------------------------------------------------
 
-int d = 0;
 void loop() {
 
   if (Serial.available() > 0){
-    inByte = Serial.readStringUntil(end);
+    Serial.println("In serial com");
+    inByte = Serial.readStringUntil(lf);
+    Serial.println("Finished readStringUntil");
     inByte.trim();
+    Serial.println(inByte);
+
     if(inByte.indexOf('T') == 0 && inByte.indexOf('t') == 1){
       setTargetColor(inByte);
     }
     if(inByte.indexOf('C') == 0 && inByte.indexOf('c') == 1){
+      Serial.println("In receiving color");
       setColor(inByte);
+      Serial.println("After setting color");
     }
     if(inByte.indexOf('S') == 0 && inByte.indexOf('s') == 1){
       for (int i = 0; i < STRIPSEGMENTS; i++) {
@@ -126,30 +126,18 @@ void loop() {
   }
 
 
-
-  // if(shallFlicker && checkTimers(1)){
-  //   setStrip = true;
-  //   // Serial.println("shallFlicker");
-  //   for(int i = 0; i < NUMSTRIPS; i++){
-  //     flicker(i);
-  //   }
-  //   wait(random(100,250),1);
-  // }
-
-    // Serial.println("shallFlicker");
-  if(checkTimers(1)){
-    for(int i = 0; i < NUMSTRIPS; i++){
-      whiteVoid(i, 0 + comp, strips[i].getNumPixels() - 30 + comp);
-    }
-    comp += 10;
-    if(comp >= NUMBEROFPIXELS){
-      comp = 0;
-    }
-    wait(1000,1);
+  if(shallFlicker){
+    flicker(0);
     setStrip = true;
   }
-
-
+  //
+  //
+  if(checkTimers(1)){
+    for (int i = 0; i < NUMSTRIPS; i++){
+      strips[i].resetIdx(random(0,10));
+    }
+    wait(200,1);
+  }
 
   if(setStrip){
     showStrips();
@@ -290,14 +278,21 @@ void establishContact() {
 //------------------------------------------------------------------------------
 
 void fadeOut(int k){
+  // Serial.println("In fade");
   for(int i = 0; i < strips[k].getNumPixels(); i++){
 
-    uint32_t color = strips[k].getPixelColor(i);
+    // strips[k].lastPixelColor[i] = strips[k].getPixelColor(i);
+
+    // uint32_t color = strips[k].getPixelColor(i);
 
     int
-    r = (uint8_t)(color >> 16),
-    g = (uint8_t)(color >>  8),
-    b = (uint8_t)color;
+    r = (uint8_t)(strips[k].lastPixelColor[i] >> 16),
+    g = (uint8_t)(strips[k].lastPixelColor[i] >>  8),
+    b = (uint8_t)strips[k].lastPixelColor[i];
+
+    // Serial.println(r);
+    // Serial.println(g);
+    // Serial.println(b);
 
     r = (fadeSpeed >= abs(strips[k].getTargetColorR(i) - r))?strips[k].getTargetColorR(i):r<strips[k].getTargetColorR(i)?r+fadeSpeed:r-fadeSpeed;
     g = (fadeSpeed >= abs(strips[k].getTargetColorG(i) - g))?strips[k].getTargetColorG(i):g<strips[k].getTargetColorG(i)?g+fadeSpeed:g-fadeSpeed;
@@ -307,6 +302,7 @@ void fadeOut(int k){
       strips[k].setColorReached(i,true);
     }
 
+    strips[k].lastPixelColor[i] = strips[k].getIntColor(r,g,b);
     // if(shallFlickerInFade && checkTimers(1)){
     //   strips[k].setBrightness(random(50,255));
     // }
@@ -340,9 +336,10 @@ bool checkSegColor()
 bool checkPixelColor(int k)
 {
   for(int i = 0; i < strips[k].getNumPixels()-1; i++){
-    if(strips[k].getColorReached(i) != strips[k].getColorReached(i+1)){
-      return false;
-    }else if(!strips[k].getColorReached(i) && !strips[k].getColorReached(i+1)){
+    // if(strips[k].getColorReached(i) != strips[k].getColorReached(i+1)){
+    //   return false;
+    // }else
+    if(!strips[k].getColorReached(i)){
       return false;
     }
   }
@@ -352,34 +349,36 @@ bool checkPixelColor(int k)
 //------------------------------------------------------------------------------
 
 void flicker(int k){
-  for(int i = 0; i <strips[k].getNumPixels(); i++)
+  for(int i = 0; i < 10; i++)
   {
-    uint32_t color = strips[k].getPixelColor(i);
+    uint32_t color = strips[k].lastPixelColor[i];
     int
-    rf = (uint8_t)(color >> 16),
-    gf = (uint8_t)(color >>  8),
-    bf = (uint8_t)color;
+    r = (uint8_t)(color >> 16),
+    g = (uint8_t)(color >>  8),
+    b = (uint8_t)color;
+    //One need to iterate up
 
-    strips[k].setNewFlickerValue(i);
-    int flicker = strips[k].getCurrentFlickerValue(i);
+    r = interpolate(255,r,strips[k].idx[i],255);
+    g = interpolate(255,g,strips[k].idx[i],255);
+    b = interpolate(255,b,strips[k].idx[i],255);
 
-    Serial.println(flicker);
 
-    if(rf >= flicker && gf >= flicker && bf >= flicker){
-      rf = rf-flicker;
-      gf = gf-flicker;
-      bf = bf-flicker;
+    if(strips[k].idx[i] >= 255){
+      strips[k].idx[i] = 255;
+    }else{
+      strips[k].idx[i] += 5;
     }
 
-    if(rf<0) rf=0;
-    if(gf<0) gf=0;
-    if(bf<0) bf=0;
-
-    isFlickering = true;
-    strips[k].setPixelColor(i,rf,gf,bf);
+    strips[k].setPixelColor(i,r,g,b);
   }
 }
 
+//------------------------------------------------------------------------------
+
+int interpolate(int startValue, int endValue, int stepNumber, int lastStepNumber)
+{
+  return (endValue - startValue) * abs(stepNumber) / lastStepNumber + startValue;
+}
 
 //------------------------------------------------------------------------------
 
@@ -389,7 +388,7 @@ void whiteVoid(int k, int low, int high){
     strips[k].setPixelColor(i,0,0,0);
   }
 
-  for(int i = high; i < strips[k].getNumPixels(); i++){
+  for(int i = low; i < high; i++){
     strips[k].setPixelColor(i,0,0,0);
   }
 
