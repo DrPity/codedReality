@@ -56,9 +56,9 @@ Wrapper_class strips[] = {
 };
 
 StripSegments segments[] = {
-  StripSegments(0,12),
-  StripSegments(12,24),
-  StripSegments(24,25)
+  StripSegments(0,9),
+  StripSegments(9,21),
+  StripSegments(21,25)
   // Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_2),
   // Wrapper_class(NUMBEROFPIXELS, STRIP_PIN_3),
 };
@@ -73,7 +73,7 @@ void setup() {
     strips[i].init();
   }
   Serial.println("Setup");
-  establishContact();
+  // establishContact();
   wait(1,0);
   // wait(10000,1);
 }
@@ -86,7 +86,7 @@ void loop() {
   if (Serial.available() > 0){
     inByte = Serial.readStringUntil(lf);
     inByte.trim();
-    Serial.println(inByte);
+    // Serial.println(inByte);
 
     if(inByte.indexOf('T') == 0 && inByte.indexOf('t') == 1){
       setTargetColor(inByte);
@@ -96,6 +96,10 @@ void loop() {
     }
     if(inByte.indexOf('P') == 0 && inByte.indexOf('p') == 1){
       offset = 0;
+    }
+    if(inByte.indexOf('#') == 0){
+      Serial.print("master");   // send a capital A
+      Serial.println();
     }
 
 

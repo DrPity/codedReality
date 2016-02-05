@@ -31,7 +31,7 @@ boolean toplistNewPopulated = false;
 boolean isHashtrue          = false;
 boolean newEvent            = false;
 
-Println console;
+// Println console;
 
 static int numberOfSegments = 3;
 color [] topListColor = new color [numberOfSegments];
@@ -52,7 +52,7 @@ void setup()
   lastTopColor = color(255,160,0);
 
   help = new Helpers();
-  help.movingAverage(1);
+  help.movingAverage(6);
 
   cp5 = new ControlP5(this);
   cp5.setFont(fontSmall);
@@ -80,8 +80,8 @@ void setup()
 
   cp5.getController("fading").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingY(11);
 
-  console = cp5.addConsole(myTextarea);//
-  console.setMax(30);
+  // console = cp5.addConsole(myTextarea);//
+  // console.setMax(30);
 
 
   initList();
@@ -91,7 +91,8 @@ void setup()
   unregisterMethod("keyEvent", cp5.getWindow());
   wait(1,0);
   wait(5000,1);
-  wait(5000,2);
+  wait(3000,2);
+  wait(3000,3);
 }
 
 //-------------------------------------------------------------------------------
@@ -109,23 +110,17 @@ void draw()
       //maybe taking the segements lenght would be better --> best if segment == topList.length
       for(int i = 0; i < topList.length; i++){
         switch (topList[i]) {
-          case 1:
-            topListColor[i] = color(255,160,0);
+          case 1: topListColor[i] = color(255,160,0);
             break;
-          case 2:
-            topListColor[i] = color(0,255,0);
+          case 2: topListColor[i] = color(0,255,0);
             break;
-          case 3:
-            topListColor[i] = color(255,0,0);
+          case 3: topListColor[i] = color(255,0,0);
             break;
-          case 4:
-            topListColor[i] = color(255,160,0);
+          case 4: topListColor[i] = color(255,160,0);
             break;
-          case 5:
-            topListColor[i] = color(0,255,0);
+          case 5: topListColor[i] = color(0,255,0);
             break;
-          case 6:
-            topListColor[i] = color(0,255,0);
+          case 6: topListColor[i] = color(0,255,0);
             break;
           default: topListColor[i] = color(255,160,0);
         }
@@ -149,13 +144,14 @@ void draw()
   }
 
   if(checkTimers(2) && toplistNewPopulated){
-    serialDevices.get(slave).port.write("Tt1,1," + topListColor[0] + "," + topListColor[1] + "," + topListColor[2] + "," + fadeSpeed);
-    if (lastTopColor != topListColor[2]){
-      serialDevices.get(slave).port.write("Pp");
-    }
+    serialDevices.get(slave).port.write("Tt1,1," + topListColor[0] + "," + topListColor[1] + "," + topListColor[2] + "," + fadeSpeed +'\n');
+      if (lastTopColor != topListColor[2]){
+        serialDevices.get(slave).port.write("Pp"+'\n');
+      }
     lastTopColor = topListColor[2];
     toplistNewPopulated = false;
     wait(500,2);
+    // sendFlicker = true;
   }
 }
 
@@ -203,11 +199,16 @@ void serialEvent(Serial thisPort)
             if(inByte.equals("master")){
               slave = i;
               println("Teensy connected");
-              serialDevices.get(slave).port.write("Tt1,1,255,255,255,20");
+              try{
+                serialDevices.get(slave).port.write("Tt1,1,255,255,255,20");
+              }catch(Exception e){
+                println(e);
+              }
             }
 
             if(i != slave && slave != -1){
               int state = Integer.parseInt(inByte);
+              println(state);
               help.add(state);
               newEvent = true;
             }
@@ -328,9 +329,12 @@ void addToggleButton(int id, float yPos)
 
 void controlEvent(ControlEvent theEvent)
 {
+  println("controlEvent: ");
   for (int i=0;i<deviceList.size();i++) {
+    println("deviceList index: " + i + "device: " + deviceList.get(i));
     if (theEvent.isFrom(deviceList.get(i))) {
       if(!headSetPopulated[i]){
+        println("name: " + deviceList.get(i).getName());
         int id = Integer.parseInt(deviceList.get(i).getName());
         registerSerialDevice(deviceList.get(i).getName(), (String) serialList.get(id), i);
       }else if(headSetPopulated[i]){
@@ -353,6 +357,7 @@ void controlEvent(ControlEvent theEvent)
 void registerSerialDevice(String id, String port, int index)
 {
   println("ID: " + id + " port: " + port + "index: " + index);
+  println("headsePop: " + headSetPopulated[index]);
   headSetPopulated[index] = true;
   WatchDog sd = new WatchDog(1,id, port, true, headSetPopulated[index], 57600, true, false, this);
   sd.start();

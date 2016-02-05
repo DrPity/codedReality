@@ -64,6 +64,7 @@ class WatchDog extends Thread
     // println(id + " " + conValue);
     deviceInit();
     sleep(300);
+    println("starting thread loop");
     while (running)
     {
       check();
@@ -185,11 +186,14 @@ class WatchDog extends Thread
 
   void initSerialPort(){
     port = new Serial(p, devicePort, bautRate);
-    println("In dev init");
+    // println("In dev init");
     if(buffer)
     {
       port.bufferUntil(lf);
+      // println("after set buffer");
     }
+    port.write("##");
     port.clear();
+    // println("clear serial port");
   }
 }
